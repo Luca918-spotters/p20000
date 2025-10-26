@@ -1,0 +1,37 @@
+name: Build P2000Luca Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller PySide6 requests simpleaudio
+
+    - name: Build EXE with PyInstaller
+      run: |
+        pyinstaller --onefile --windowed --icon=icon.ico --add-data "resources/alert.wav;resources" p2000-luca.py
+
+    - name: Upload EXE to release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: P2000Luca-${{ github.ref_name }}.exe
+        files: dist/p2000-luca.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
